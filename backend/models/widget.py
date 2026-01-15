@@ -325,6 +325,26 @@ class WidgetUpdate(BaseModel):
         return v
 
 
+class WidgetResponse(BaseModel):
+    """Schema for widget API response (legacy)"""
+    id: str
+    section_name: str
+    widget_code: str
+    widget_name: Optional[str]
+    is_active: bool
+    display_order: int
+    created_at: datetime
+    updated_at: datetime
+
+
+class WidgetPublicResponse(BaseModel):
+    """Schema for public widget response (legacy)"""
+    section_name: str
+    widget_code: str
+    widget_name: Optional[str]
+    is_active: bool
+
+
 # ═══════════════════════════════════════
 # HELPER FUNCTIONS
 # ═══════════════════════════════════════
