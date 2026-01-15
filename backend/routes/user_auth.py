@@ -10,12 +10,16 @@ import os
 import logging
 import re
 
-# Import database
-from server import db
-
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth/user", tags=["User Auth"])
+
+# Database reference (set during app startup)
+db = None
+
+def set_db(database):
+    global db
+    db = database
 
 # JWT settings
 JWT_SECRET = os.environ.get("JWT_SECRET_KEY", "timelov_user_secret_key")
