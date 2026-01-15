@@ -120,6 +120,9 @@ api_router.include_router(dashboard_router)
 # Include API router in main app
 app.include_router(api_router)
 
+# Add Security Headers Middleware
+app.add_middleware(SecurityHeadersMiddleware)
+
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
