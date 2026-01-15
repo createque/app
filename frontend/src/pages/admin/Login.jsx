@@ -273,11 +273,77 @@ const LoginPage = () => {
                   )}
                 </Button>
                 
+                {/* Reset password form (when user has token) */}
+                {forgotMessage && (
+                  <div className="mt-6 pt-6 border-t border-gray-700">
+                    <p className="text-gray-400 text-sm text-center mb-4">
+                      Masz token resetowania? Wprowadź go poniżej:
+                    </p>
+                    <form onSubmit={handleResetPassword} className="space-y-4">
+                      <Input
+                        placeholder="Token resetowania"
+                        value={resetToken}
+                        onChange={(e) => setResetToken(e.target.value)}
+                        required
+                        data-testid="reset-token-input"
+                        className="bg-[#0F0F10] border-gray-700 text-white placeholder:text-gray-500"
+                      />
+                      <div>
+                        <Input
+                          type="password"
+                          placeholder="Nowe hasło"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          required
+                          data-testid="new-password-input"
+                          className="bg-[#0F0F10] border-gray-700 text-white placeholder:text-gray-500"
+                        />
+                        <PasswordStrength password={newPassword} />
+                      </div>
+                      <Input
+                        type="password"
+                        placeholder="Potwierdź nowe hasło"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                        data-testid="confirm-password-input"
+                        className="bg-[#0F0F10] border-gray-700 text-white placeholder:text-gray-500"
+                      />
+                      
+                      {resetMessage.text && (
+                        <div className={`p-3 rounded-lg text-sm ${
+                          resetMessage.type === 'error' 
+                            ? 'bg-red-500/10 border border-red-500/30 text-red-400'
+                            : 'bg-[#00CC88]/10 border border-[#00CC88]/30 text-[#00CC88]'
+                        }`}>
+                          {resetMessage.text}
+                        </div>
+                      )}
+                      
+                      <Button
+                        type="submit"
+                        disabled={resetLoading}
+                        className="w-full bg-[#00CC88] hover:bg-[#00AA70] text-white"
+                      >
+                        {resetLoading ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <ShieldCheck className="w-4 h-4 mr-2" />
+                        )}
+                        Zmień hasło
+                      </Button>
+                    </form>
+                  </div>
+                )}
+                
                 <button
                   type="button"
                   onClick={() => {
                     setShowForgotPassword(false);
                     setForgotMessage('');
+                    setResetToken('');
+                    setNewPassword('');
+                    setConfirmPassword('');
                   }}
                   className="w-full text-center text-sm text-gray-400 hover:text-white transition-colors"
                 >
@@ -288,8 +354,14 @@ const LoginPage = () => {
           )}
         </div>
         
+        {/* Security badge */}
+        <div className="mt-6 flex items-center justify-center gap-2 text-gray-500 text-xs">
+          <ShieldCheck className="w-4 h-4" />
+          <span>Połączenie szyfrowane SSL</span>
+        </div>
+        
         {/* Back to site link */}
-        <div className="mt-6 text-center">
+        <div className="mt-3 text-center">
           <a 
             href="/" 
             className="text-sm text-gray-500 hover:text-gray-300 transition-colors"
