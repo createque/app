@@ -15,6 +15,11 @@ class AuditAction(str, Enum):
     PASSWORD_RESET_SUCCESS = "password_reset_success"
     TOKEN_REFRESH = "token_refresh"
     
+    # Generic CRUD actions
+    CREATE = "create"
+    UPDATE = "update"
+    DELETE = "delete"
+    
     # Page actions
     PAGE_CREATE = "page_create"
     PAGE_UPDATE = "page_update"
@@ -38,6 +43,12 @@ class AuditAction(str, Enum):
     
     # Settings actions
     SETTINGS_UPDATE = "settings_update"
+    
+    # Integration actions
+    INTEGRATION_CREATE = "integration_create"
+    INTEGRATION_UPDATE = "integration_update"
+    INTEGRATION_DELETE = "integration_delete"
+    INTEGRATION_TOGGLE = "integration_toggle"
 
 
 class EntityType(str, Enum):
