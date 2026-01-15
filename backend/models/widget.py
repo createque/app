@@ -1,14 +1,49 @@
+"""
+Widget and Third-Party Integration Models for TimeLov CMS
+Supports Elfsight, Frill, LiveAgent, Tacu.cool, Malcolm and more
+"""
 from pydantic import BaseModel, Field, validator
-from typing import Optional
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 import uuid
 from enum import Enum
 import re
-import html
+
+
+# ═══════════════════════════════════════
+# ENUMS
+# ═══════════════════════════════════════
+
+class IntegrationType(str, Enum):
+    """Types of 3rd party integrations with automatic CSS support"""
+    # Elfsight Widgets
+    ELFSIGHT_REVIEWS = "ELFSIGHT_REVIEWS"
+    ELFSIGHT_INSTAGRAM = "ELFSIGHT_INSTAGRAM"
+    ELFSIGHT_FACEBOOK = "ELFSIGHT_FACEBOOK"
+    ELFSIGHT_TESTIMONIALS = "ELFSIGHT_TESTIMONIALS"
+    ELFSIGHT_PRICING = "ELFSIGHT_PRICING"
+    ELFSIGHT_FAQ = "ELFSIGHT_FAQ"
+    ELFSIGHT_FORM = "ELFSIGHT_FORM"
+    
+    # Roadmap & Docs
+    FRILL_ROADMAP = "FRILL_ROADMAP"
+    MALCOLM_DOCS = "MALCOLM_DOCS"
+    
+    # Chat & Support
+    LIVEAGENT_CHAT = "LIVEAGENT_CHAT"
+    CRISP_CHAT = "CRISP_CHAT"
+    INTERCOM_CHAT = "INTERCOM_CHAT"
+    
+    # Engagement
+    TACU_POPUP = "TACU_POPUP"
+    TACU_BANNER = "TACU_BANNER"
+    
+    # Custom
+    CUSTOM = "CUSTOM"
 
 
 class WidgetSection(str, Enum):
-    """Enum for widget placement sections"""
+    """Widget placement sections on landing page"""
     HERO = "hero"
     FEATURES = "features"
     PRICING = "pricing"
@@ -21,17 +56,18 @@ class WidgetSection(str, Enum):
     CUSTOM = "custom"
 
 
-# Whitelist of allowed HTML tags for widget code
-ALLOWED_TAGS = {
-    'div', 'span', 'p', 'a', 'img', 'iframe', 'script', 'style',
-    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-    'ul', 'ol', 'li', 'br', 'hr',
-    'table', 'tr', 'td', 'th', 'thead', 'tbody',
-    'form', 'input', 'button', 'label', 'select', 'option', 'textarea',
-    'section', 'article', 'header', 'footer', 'nav', 'aside', 'main',
-    'figure', 'figcaption', 'picture', 'source', 'video', 'audio',
-    'svg', 'path', 'circle', 'rect', 'line', 'polygon', 'polyline', 'g', 'defs', 'use'
-}
+class InjectionPosition(str, Enum):
+    """Where to inject the widget code in HTML"""
+    HEADER = "header"  # Inside <head>
+    AFTER_BODY_OPEN = "after_body_open"  # Right after <body>
+    BEFORE_BODY_CLOSE = "before_body_close"  # Right before </body>
+    FOOTER = "footer"  # In footer section
+    INLINE = "inline"  # Inline in specific section
+
+
+# ═══════════════════════════════════════
+# VALIDATION HELPERS
+# ═══════════════════════════════════════
 
 # Trusted sources for iframes and scripts
 TRUSTED_SOURCES = [
@@ -48,74 +84,212 @@ TRUSTED_SOURCES = [
     'facebook.com',
     'www.facebook.com',
     'twitter.com',
-    'platform.twitter.com'
+    'platform.twitter.com',
+    'frill.co',
+    'widget.frill.co',
+    'liveagent.com',
+    'cdn.liveagent.com',
+    'tacu.cool',
+    'cdn.tacu.cool',
+    'malcolm.app',
+    'crisp.chat',
+    'client.crisp.chat',
+    'intercom.io',
+    'widget.intercom.io',
 ]
 
 
-def sanitize_widget_code(code: str) -> str:
-    """Sanitize widget code while preserving Elfsight functionality"""
-    # Check for potentially dangerous patterns (excluding trusted sources)
+def validate_widget_code(code: str) -> str:
+    """Validate and sanitize widget code"""
+    if not code:
+        return code
+    
+    # Check size (max 100KB)
+    if len(code) > 100 * 1024:
+        raise ValueError('Widget code exceeds 100KB limit')
+    
+    # Check for dangerous patterns (but allow scripts from trusted sources)
+    code_lower = code.lower()
+    
     dangerous_patterns = [
         (r'javascript:', 'JavaScript URLs are not allowed'),
         (r'data:', 'Data URLs are not allowed'),
         (r'vbscript:', 'VBScript URLs are not allowed'),
     ]
     
-    code_lower = code.lower()
-    
     for pattern, message in dangerous_patterns:
         if re.search(pattern, code_lower):
-            # Allow if it's within an Elfsight context
-            if 'elfsight' not in code_lower:
+            # Check if it's from a trusted source
+            is_trusted = any(source in code_lower for source in TRUSTED_SOURCES)
+            if not is_trusted:
                 raise ValueError(message)
     
     return code
 
 
-def validate_iframe_sources(code: str) -> bool:
-    """Validate that iframe sources are from trusted domains"""
-    iframe_pattern = r'<iframe[^>]*src=["\']([^"\']+)["\']'
-    matches = re.findall(iframe_pattern, code, re.IGNORECASE)
+# ═══════════════════════════════════════
+# THIRD PARTY INTEGRATION MODEL
+# ═══════════════════════════════════════
+
+class ThirdPartyIntegration(BaseModel):
+    """
+    Universal model for all 3rd party integrations.
+    CSS is automatically applied based on integration_type.
+    """
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     
-    for src in matches:
-        if src.startswith('https://'):
-            domain = src.split('/')[2]
-            if not any(trusted in domain for trusted in TRUSTED_SOURCES):
-                raise ValueError(f'Iframe source not from trusted domain: {domain}')
-        elif not src.startswith('//'):
-            raise ValueError('Iframe sources must use HTTPS')
+    # Type determines automatic CSS
+    integration_type: IntegrationType
     
-    return True
+    # User-friendly name (e.g., "Google Reviews Widget")
+    integration_name: str
+    
+    # Raw HTML/JS/iframe code from external service
+    widget_code: str
+    
+    # Positioning
+    section_name: Optional[WidgetSection] = None
+    injection_position: InjectionPosition = InjectionPosition.BEFORE_BODY_CLOSE
+    
+    # Status and ordering
+    is_active: bool = True
+    priority_order: int = 0  # Lower = loads first
+    
+    # Optional custom CSS override
+    custom_css_override: Optional[str] = None
+    
+    # Configuration for specific integrations
+    config: Dict[str, Any] = {}
+    
+    # Metadata
+    created_by: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    
+    @validator('widget_code')
+    def validate_code(cls, v):
+        return validate_widget_code(v)
+    
+    def get_css_template(self) -> str:
+        """Get automatic CSS template for this integration type"""
+        from templates.css_templates import get_css_for_type
+        return get_css_for_type(self.integration_type.value)
+    
+    def get_final_css(self) -> str:
+        """Get final CSS (template + optional override)"""
+        template_css = self.get_css_template()
+        
+        if self.custom_css_override:
+            return f"{template_css}\n\n/* Custom Override */\n{self.custom_css_override}"
+        
+        return template_css
+    
+    def get_rendered_html(self) -> str:
+        """Get widget code wrapped with CSS"""
+        css = self.get_final_css()
+        
+        # Generate unique ID for this widget
+        widget_id = f"timelove-widget-{self.id[:8]}"
+        
+        html = f"""
+<!-- TimeLov Integration: {self.integration_name} -->
+<div id="{widget_id}" class="timelove-widget timelove-{self.integration_type.value.lower().replace('_', '-')}">
+    <style>
+        #{widget_id} {{
+            /* Scoped styles */
+        }}
+        {css}
+    </style>
+    {self.widget_code}
+</div>
+<!-- End: {self.integration_name} -->
+"""
+        return html
+
+    class Config:
+        json_encoders = {
+            datetime: lambda v: v.isoformat()
+        }
 
 
-def validate_script_sources(code: str) -> bool:
-    """Validate that script sources are from trusted domains"""
-    script_pattern = r'<script[^>]*src=["\']([^"\']+)["\']'
-    matches = re.findall(script_pattern, code, re.IGNORECASE)
-    
-    for src in matches:
-        if src.startswith('https://') or src.startswith('//'):
-            domain = src.replace('//', '').split('/')[0]
-            if not any(trusted in domain for trusted in TRUSTED_SOURCES):
-                raise ValueError(f'Script source not from trusted domain: {domain}')
-        else:
-            raise ValueError('Script sources must use HTTPS')
-    
-    return True
+# ═══════════════════════════════════════
+# CREATE/UPDATE SCHEMAS
+# ═══════════════════════════════════════
 
+class IntegrationCreate(BaseModel):
+    """Schema for creating a new integration"""
+    integration_type: IntegrationType
+    integration_name: str
+    widget_code: str
+    section_name: Optional[WidgetSection] = None
+    injection_position: InjectionPosition = InjectionPosition.BEFORE_BODY_CLOSE
+    is_active: bool = True
+    priority_order: int = 0
+    custom_css_override: Optional[str] = None
+    config: Dict[str, Any] = {}
+    
+    @validator('widget_code')
+    def validate_code(cls, v):
+        return validate_widget_code(v)
+
+
+class IntegrationUpdate(BaseModel):
+    """Schema for updating an integration"""
+    integration_name: Optional[str] = None
+    widget_code: Optional[str] = None
+    section_name: Optional[WidgetSection] = None
+    injection_position: Optional[InjectionPosition] = None
+    is_active: Optional[bool] = None
+    priority_order: Optional[int] = None
+    custom_css_override: Optional[str] = None
+    config: Optional[Dict[str, Any]] = None
+    
+    @validator('widget_code')
+    def validate_code(cls, v):
+        if v is not None:
+            return validate_widget_code(v)
+        return v
+
+
+class IntegrationResponse(BaseModel):
+    """Schema for integration API response"""
+    id: str
+    integration_type: str
+    integration_name: str
+    widget_code: str
+    section_name: Optional[str]
+    injection_position: str
+    is_active: bool
+    priority_order: int
+    custom_css_override: Optional[str]
+    config: Dict[str, Any]
+    # Auto-generated
+    css_template: str
+    rendered_html: str
+    created_at: datetime
+    updated_at: datetime
+
+
+# ═══════════════════════════════════════
+# LEGACY ELFSIGHT WIDGET MODEL (for backward compatibility)
+# ═══════════════════════════════════════
 
 class ElfsightWidget(BaseModel):
-    """Model for Elfsight widget configuration"""
+    """Legacy widget model - use ThirdPartyIntegration for new code"""
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     section_name: WidgetSection
     widget_code: str
-    widget_name: Optional[str] = None  # Friendly name for the widget
+    widget_name: Optional[str] = None
     is_active: bool = True
     display_order: int = 0
     created_by: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
-    deleted_at: Optional[datetime] = None  # Soft delete
+    deleted_at: Optional[datetime] = None
+
+    @validator('widget_code')
+    def validate_code(cls, v):
+        return validate_widget_code(v)
 
     class Config:
         json_encoders = {
@@ -124,7 +298,7 @@ class ElfsightWidget(BaseModel):
 
 
 class WidgetCreate(BaseModel):
-    """Schema for creating a widget"""
+    """Schema for creating a widget (legacy)"""
     section_name: WidgetSection
     widget_code: str
     widget_name: Optional[str] = None
@@ -132,25 +306,12 @@ class WidgetCreate(BaseModel):
     display_order: int = 0
 
     @validator('widget_code')
-    def validate_widget_code(cls, v):
-        # Max 50KB
-        if len(v) > 50 * 1024:
-            raise ValueError('Widget code exceeds 50KB limit')
-        
-        # Sanitize the code
-        v = sanitize_widget_code(v)
-        
-        # Validate iframe sources (only HTTPS from trusted domains)
-        validate_iframe_sources(v)
-        
-        # Validate script sources (only HTTPS from trusted domains)
-        validate_script_sources(v)
-        
-        return v
+    def validate_code(cls, v):
+        return validate_widget_code(v)
 
 
 class WidgetUpdate(BaseModel):
-    """Schema for updating a widget"""
+    """Schema for updating a widget (legacy)"""
     section_name: Optional[WidgetSection] = None
     widget_code: Optional[str] = None
     widget_name: Optional[str] = None
@@ -158,29 +319,115 @@ class WidgetUpdate(BaseModel):
     display_order: Optional[int] = None
 
     @validator('widget_code')
-    def validate_widget_code(cls, v):
-        if v is None:
-            return v
-        if len(v) > 50 * 1024:
-            raise ValueError('Widget code exceeds 50KB limit')
+    def validate_code(cls, v):
+        if v is not None:
+            return validate_widget_code(v)
         return v
 
 
-class WidgetResponse(BaseModel):
-    """Schema for widget response"""
-    id: str
-    section_name: str
-    widget_code: str
-    widget_name: Optional[str]
-    is_active: bool
-    display_order: int
-    created_by: Optional[str]
-    created_at: datetime
-    updated_at: datetime
+# ═══════════════════════════════════════
+# HELPER FUNCTIONS
+# ═══════════════════════════════════════
 
-
-class WidgetPublicResponse(BaseModel):
-    """Schema for public widget response (limited data)"""
-    section_name: str
-    widget_code: str
-    is_active: bool
+def get_integration_type_info() -> List[Dict[str, Any]]:
+    """Get information about all integration types"""
+    type_info = {
+        IntegrationType.ELFSIGHT_REVIEWS: {
+            "name": "Elfsight Reviews",
+            "description": "Google/Facebook/Yelp reviews widget",
+            "category": "reviews",
+            "recommended_position": InjectionPosition.INLINE
+        },
+        IntegrationType.ELFSIGHT_INSTAGRAM: {
+            "name": "Elfsight Instagram Feed",
+            "description": "Instagram feed widget",
+            "category": "social",
+            "recommended_position": InjectionPosition.INLINE
+        },
+        IntegrationType.ELFSIGHT_FACEBOOK: {
+            "name": "Elfsight Facebook Feed",
+            "description": "Facebook page feed widget",
+            "category": "social",
+            "recommended_position": InjectionPosition.INLINE
+        },
+        IntegrationType.ELFSIGHT_TESTIMONIALS: {
+            "name": "Elfsight Testimonials",
+            "description": "Customer testimonials slider",
+            "category": "reviews",
+            "recommended_position": InjectionPosition.INLINE
+        },
+        IntegrationType.ELFSIGHT_PRICING: {
+            "name": "Elfsight Pricing Table",
+            "description": "Pricing comparison table",
+            "category": "pricing",
+            "recommended_position": InjectionPosition.INLINE
+        },
+        IntegrationType.ELFSIGHT_FAQ: {
+            "name": "Elfsight FAQ",
+            "description": "FAQ accordion widget",
+            "category": "content",
+            "recommended_position": InjectionPosition.INLINE
+        },
+        IntegrationType.ELFSIGHT_FORM: {
+            "name": "Elfsight Form Builder",
+            "description": "Contact/subscription form",
+            "category": "forms",
+            "recommended_position": InjectionPosition.INLINE
+        },
+        IntegrationType.FRILL_ROADMAP: {
+            "name": "Frill Roadmap",
+            "description": "Product roadmap and feedback",
+            "category": "feedback",
+            "recommended_position": InjectionPosition.INLINE
+        },
+        IntegrationType.MALCOLM_DOCS: {
+            "name": "Malcolm Knowledge Base",
+            "description": "Documentation/help center",
+            "category": "support",
+            "recommended_position": InjectionPosition.INLINE
+        },
+        IntegrationType.LIVEAGENT_CHAT: {
+            "name": "LiveAgent Chat",
+            "description": "Live chat support widget",
+            "category": "chat",
+            "recommended_position": InjectionPosition.BEFORE_BODY_CLOSE
+        },
+        IntegrationType.CRISP_CHAT: {
+            "name": "Crisp Chat",
+            "description": "Crisp live chat widget",
+            "category": "chat",
+            "recommended_position": InjectionPosition.BEFORE_BODY_CLOSE
+        },
+        IntegrationType.INTERCOM_CHAT: {
+            "name": "Intercom",
+            "description": "Intercom messenger widget",
+            "category": "chat",
+            "recommended_position": InjectionPosition.BEFORE_BODY_CLOSE
+        },
+        IntegrationType.TACU_POPUP: {
+            "name": "Tacu.cool Popup",
+            "description": "Engagement popup/modal",
+            "category": "engagement",
+            "recommended_position": InjectionPosition.BEFORE_BODY_CLOSE
+        },
+        IntegrationType.TACU_BANNER: {
+            "name": "Tacu.cool Banner",
+            "description": "Sticky banner/bar",
+            "category": "engagement",
+            "recommended_position": InjectionPosition.AFTER_BODY_OPEN
+        },
+        IntegrationType.CUSTOM: {
+            "name": "Custom Integration",
+            "description": "Any other widget or integration",
+            "category": "other",
+            "recommended_position": InjectionPosition.BEFORE_BODY_CLOSE
+        },
+    }
+    
+    return [
+        {
+            "type": t.value,
+            **type_info.get(t, {"name": t.value, "description": "", "category": "other"})
+        }
+        for t in IntegrationType
+    ]
