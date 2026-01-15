@@ -424,7 +424,8 @@ const WidgetsPage = () => {
             </Button>
             <Button
               onClick={handleSave}
-              disabled={saving}
+              disabled={saving || codeSize > 50 * 1024}
+              data-testid="save-widget-button"
               className="bg-[#0066FF] hover:bg-[#0052CC] text-white"
             >
               {saving ? (
