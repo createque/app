@@ -119,6 +119,8 @@ async def health_check():
 
 # Include routers
 api_router.include_router(auth_router)
+api_router.include_router(user_auth_router)
+api_router.include_router(demo_router)
 api_router.include_router(widgets_router)
 api_router.include_router(pages_router)
 api_router.include_router(posts_router)
