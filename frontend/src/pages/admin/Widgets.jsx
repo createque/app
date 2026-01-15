@@ -59,6 +59,7 @@ const WidgetsPage = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [selectedWidget, setSelectedWidget] = useState(null);
+  const [codeSize, setCodeSize] = useState(0);
   const [formData, setFormData] = useState({
     section_name: '',
     widget_code: '',
