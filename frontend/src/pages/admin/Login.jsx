@@ -171,6 +171,7 @@ const LoginPage = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
+                      data-testid="login-password-input"
                       className="bg-[#0F0F10] border-gray-700 text-white placeholder:text-gray-500 focus:border-[#0066FF] focus:ring-[#0066FF]/20 pr-10"
                     />
                     <button
