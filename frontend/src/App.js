@@ -6,6 +6,11 @@ import LandingPage from "./pages/LandingPage";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 
+// Public Pages
+import SignUpPage from "./pages/SignUp";
+import SignInPage from "./pages/SignIn";
+import DemoPage from "./pages/Demo";
+
 // Admin Pages
 import LoginPage from "./pages/admin/Login";
 import DashboardPage from "./pages/admin/DashboardNew";
@@ -33,6 +38,9 @@ function App() {
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<LandingPage />} />
+            <Route path="/signup" element={<SignUpPage />} />
+            <Route path="/signin" element={<SignInPage />} />
+            <Route path="/demo" element={<DemoPage />} />
             
             {/* Admin Routes */}
             <Route path="/admin/login" element={<LoginPage />} />
