@@ -19,11 +19,18 @@ const LoginPage = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotMessage, setForgotMessage] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
+  const [resetToken, setResetToken] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetMessage, setResetMessage] = useState({ type: '', text: '' });
+  const [emailError, setEmailError] = useState('');
   
-  const { requestPasswordReset } = useAuth();
+  const { requestPasswordReset, resetPassword } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
