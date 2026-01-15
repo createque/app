@@ -5,7 +5,9 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Checkbox } from '../../components/ui/checkbox';
-import { Clock, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
+import { Clock, Eye, EyeOff, Loader2, AlertCircle, ShieldCheck } from 'lucide-react';
+import { validateEmail, validatePassword } from '../../lib/validators';
+import PasswordStrength from '../../components/ui/PasswordStrength';
 
 const LoginPage = () => {
   const navigate = useNavigate();
