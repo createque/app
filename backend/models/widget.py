@@ -4,6 +4,7 @@ from datetime import datetime
 import uuid
 from enum import Enum
 import re
+import html
 
 
 class WidgetSection(str, Enum):
@@ -18,6 +19,89 @@ class WidgetSection(str, Enum):
     CONTACT = "contact"
     FOOTER = "footer"
     CUSTOM = "custom"
+
+
+# Whitelist of allowed HTML tags for widget code
+ALLOWED_TAGS = {
+    'div', 'span', 'p', 'a', 'img', 'iframe', 'script', 'style',
+    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+    'ul', 'ol', 'li', 'br', 'hr',
+    'table', 'tr', 'td', 'th', 'thead', 'tbody',
+    'form', 'input', 'button', 'label', 'select', 'option', 'textarea',
+    'section', 'article', 'header', 'footer', 'nav', 'aside', 'main',
+    'figure', 'figcaption', 'picture', 'source', 'video', 'audio',
+    'svg', 'path', 'circle', 'rect', 'line', 'polygon', 'polyline', 'g', 'defs', 'use'
+}
+
+# Trusted sources for iframes and scripts
+TRUSTED_SOURCES = [
+    'elfsight.com',
+    'static.elfsight.com',
+    'apps.elfsight.com',
+    'widget.elfsight.com',
+    'youtube.com',
+    'www.youtube.com',
+    'player.vimeo.com',
+    'google.com',
+    'www.google.com',
+    'googletagmanager.com',
+    'facebook.com',
+    'www.facebook.com',
+    'twitter.com',
+    'platform.twitter.com'
+]
+
+
+def sanitize_widget_code(code: str) -> str:
+    """Sanitize widget code while preserving Elfsight functionality"""
+    # Check for potentially dangerous patterns (excluding trusted sources)
+    dangerous_patterns = [
+        (r'javascript:', 'JavaScript URLs are not allowed'),
+        (r'data:', 'Data URLs are not allowed'),
+        (r'vbscript:', 'VBScript URLs are not allowed'),
+    ]
+    
+    code_lower = code.lower()
+    
+    for pattern, message in dangerous_patterns:
+        if re.search(pattern, code_lower):
+            # Allow if it's within an Elfsight context
+            if 'elfsight' not in code_lower:
+                raise ValueError(message)
+    
+    return code
+
+
+def validate_iframe_sources(code: str) -> bool:
+    """Validate that iframe sources are from trusted domains"""
+    iframe_pattern = r'<iframe[^>]*src=["\']([^"\']+)["\']'
+    matches = re.findall(iframe_pattern, code, re.IGNORECASE)
+    
+    for src in matches:
+        if src.startswith('https://'):
+            domain = src.split('/')[2]
+            if not any(trusted in domain for trusted in TRUSTED_SOURCES):
+                raise ValueError(f'Iframe source not from trusted domain: {domain}')
+        elif not src.startswith('//'):
+            raise ValueError('Iframe sources must use HTTPS')
+    
+    return True
+
+
+def validate_script_sources(code: str) -> bool:
+    """Validate that script sources are from trusted domains"""
+    script_pattern = r'<script[^>]*src=["\']([^"\']+)["\']'
+    matches = re.findall(script_pattern, code, re.IGNORECASE)
+    
+    for src in matches:
+        if src.startswith('https://') or src.startswith('//'):
+            domain = src.replace('//', '').split('/')[0]
+            if not any(trusted in domain for trusted in TRUSTED_SOURCES):
+                raise ValueError(f'Script source not from trusted domain: {domain}')
+        else:
+            raise ValueError('Script sources must use HTTPS')
+    
+    return True
 
 
 class ElfsightWidget(BaseModel):
