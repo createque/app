@@ -6,12 +6,16 @@ from datetime import datetime
 import uuid
 import logging
 
-# Import database
-from server import db
-
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/demo", tags=["Demo"])
+
+# Database reference (set during app startup)
+db = None
+
+def set_db(database):
+    global db
+    db = database
 
 
 class DemoRequest(BaseModel):
