@@ -72,6 +72,13 @@ async def lifespan(app: FastAPI):
     await db.posts.create_index("slug", unique=True)
     await db.settings.create_index("setting_key", unique=True)
     
+    # App user indexes
+    await db.app_users.create_index("email", unique=True)
+    await db.app_users.create_index("id", unique=True)
+    await db.demo_requests.create_index("id", unique=True)
+    await db.demo_requests.create_index("email")
+    await db.demo_requests.create_index("created_at")
+    
     logger.info("Database connected and indexes created")
     
     yield
