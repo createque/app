@@ -62,6 +62,7 @@ async def lifespan(app: FastAPI):
     set_dashboard_db(db)
     set_user_auth_db(db)
     set_demo_db(db)
+    set_integrations_db(db)
     
     # Create indexes
     await db.admin_users.create_index("email", unique=True)
@@ -76,6 +77,12 @@ async def lifespan(app: FastAPI):
     await db.posts.create_index("id", unique=True)
     await db.posts.create_index("slug", unique=True)
     await db.settings.create_index("setting_key", unique=True)
+    
+    # Integrations indexes
+    await db.integrations.create_index("id", unique=True)
+    await db.integrations.create_index("integration_type")
+    await db.integrations.create_index("section_name")
+    await db.integrations.create_index("is_active")
     
     # App user indexes
     await db.app_users.create_index("email", unique=True)
