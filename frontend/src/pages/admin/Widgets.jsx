@@ -395,12 +395,21 @@ const WidgetsPage = () => {
               <Textarea
                 id="code"
                 value={formData.widget_code}
-                onChange={(e) => setFormData(prev => ({ ...prev, widget_code: e.target.value }))}
+                onChange={(e) => {
+                  setFormData(prev => ({ ...prev, widget_code: e.target.value }));
+                  setCodeSize(new Blob([e.target.value]).size);
+                }}
                 placeholder='<script src="https://static.elfsight.com/platform/platform.js" data-use-service-core defer></script>&#10;<div class="elfsight-app-xxx"></div>'
                 rows={8}
+                data-testid="widget-code-input"
                 className="bg-[#0F0F10] border-gray-700 text-white font-mono text-sm"
               />
-              <p className="text-xs text-gray-500">Max 50KB. Wklej pełny kod HTML z Elfsight.</p>
+              <div className="flex justify-between text-xs">
+                <span className="text-gray-500">Max 50KB. Wklej pełny kod HTML z Elfsight.</span>
+                <span className={`${codeSize > 50 * 1024 ? 'text-red-400' : 'text-gray-500'}`}>
+                  {(codeSize / 1024).toFixed(1)} KB / 50 KB
+                </span>
+              </div>
             </div>
           </div>
           
