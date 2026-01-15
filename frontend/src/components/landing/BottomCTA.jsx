@@ -1,6 +1,7 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '../ui/button';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles, Calendar } from 'lucide-react';
 
 const BottomCTA = () => {
   return (
@@ -30,20 +31,27 @@ const BottomCTA = () => {
           
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg"
-              className="bg-[#0066FF] hover:bg-[#0052CC] text-white px-8 py-6 text-base font-semibold shadow-xl shadow-[#0066FF]/30 transition-all hover:shadow-2xl hover:shadow-[#0066FF]/40 hover:-translate-y-0.5"
-            >
-              Spróbuj za darmo
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-            <Button 
-              variant="outline"
-              size="lg"
-              className="border-2 border-white/30 text-white hover:bg-white/10 hover:border-white/50 px-8 py-6 text-base font-semibold transition-all"
-            >
-              Zaplanuj demo
-            </Button>
+            <Link to="/signup">
+              <Button 
+                size="lg"
+                data-testid="cta-signup-button"
+                className="bg-[#0066FF] hover:bg-[#0052CC] text-white px-8 py-6 text-base font-semibold shadow-xl shadow-[#0066FF]/30 transition-all hover:shadow-2xl hover:shadow-[#0066FF]/40 hover:-translate-y-0.5 w-full sm:w-auto"
+              >
+                Spróbuj za darmo
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
+            <Link to="/demo">
+              <Button 
+                variant="outline"
+                size="lg"
+                data-testid="cta-demo-button"
+                className="border-2 border-white/30 text-white hover:bg-white/10 hover:border-white/50 px-8 py-6 text-base font-semibold transition-all w-full sm:w-auto"
+              >
+                <Calendar className="w-5 h-5 mr-2" />
+                Zaplanuj demo
+              </Button>
+            </Link>
           </div>
           
           {/* Trust badges */}
