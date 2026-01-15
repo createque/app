@@ -36,12 +36,61 @@ const LoginPage = () => {
     e.preventDefault();
     clearError();
     
+    // Validate email format
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.valid) {
+      setEmailError(emailValidation.error);
+      return;
+    }
+    setEmailError('');
+    
     const result = await login(email, password, rememberMe);
     
     if (result.success) {
       // Redirect to intended page or dashboard
       const from = location.state?.from?.pathname || '/admin/dashboard';
       navigate(from, { replace: true });
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setResetLoading(true);
+    setResetMessage({ type: '', text: '' });
+    
+    // Validate password strength
+    const passwordValidation = validatePassword(newPassword);
+    if (!passwordValidation.valid) {
+      setResetMessage({ 
+        type: 'error', 
+        text: 'Hasło nie spełnia wymagań bezpieczeństwa' 
+      });
+      setResetLoading(false);
+      return;
+    }
+    
+    // Check passwords match
+    if (newPassword !== confirmPassword) {
+      setResetMessage({ type: 'error', text: 'Hasła nie są identyczne' });
+      setResetLoading(false);
+      return;
+    }
+    
+    const result = await resetPassword(resetToken, newPassword);
+    setResetMessage({ 
+      type: result.success ? 'success' : 'error', 
+      text: result.message 
+    });
+    setResetLoading(false);
+    
+    if (result.success) {
+      setTimeout(() => {
+        setShowResetPassword(false);
+        setShowForgotPassword(false);
+        setResetToken('');
+        setNewPassword('');
+        setConfirmPassword('');
+      }, 2000);
     }
   };
 
