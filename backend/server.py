@@ -59,6 +59,8 @@ async def lifespan(app: FastAPI):
     set_settings_db(db)
     set_audit_logs_db(db)
     set_dashboard_db(db)
+    set_user_auth_db(db)
+    set_demo_db(db)
     
     # Create indexes
     await db.admin_users.create_index("email", unique=True)
