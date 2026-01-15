@@ -21,6 +21,8 @@ from routes.posts import router as posts_router, set_db as set_posts_db
 from routes.settings import router as settings_router, set_db as set_settings_db
 from routes.audit_logs import router as audit_logs_router, set_db as set_audit_logs_db
 from routes.dashboard import router as dashboard_router, set_db as set_dashboard_db
+from routes.user_auth import router as user_auth_router
+from routes.demo import router as demo_router
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
