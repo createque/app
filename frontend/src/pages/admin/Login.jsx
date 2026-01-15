@@ -139,7 +139,7 @@ const LoginPage = () => {
                 </div>
               )}
               
-              <form onSubmit={handleSubmit} className="space-y-5">
+              <form onSubmit={handleSubmit} className="space-y-5" data-testid="login-form">
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-gray-300">
                     Email
@@ -149,10 +149,14 @@ const LoginPage = () => {
                     type="email"
                     placeholder="admin@timelov.pl"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => { setEmail(e.target.value); setEmailError(''); }}
                     required
-                    className="bg-[#0F0F10] border-gray-700 text-white placeholder:text-gray-500 focus:border-[#0066FF] focus:ring-[#0066FF]/20"
+                    data-testid="login-email-input"
+                    className={`bg-[#0F0F10] border-gray-700 text-white placeholder:text-gray-500 focus:border-[#0066FF] focus:ring-[#0066FF]/20 ${emailError ? 'border-red-500' : ''}`}
                   />
+                  {emailError && (
+                    <p className="text-xs text-red-400">{emailError}</p>
+                  )}
                 </div>
                 
                 <div className="space-y-2">
