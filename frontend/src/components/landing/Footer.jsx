@@ -1,5 +1,6 @@
 import React from 'react';
-import { Clock, Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Instagram } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Clock, Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Instagram, ExternalLink } from 'lucide-react';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -8,37 +9,37 @@ const Footer = () => {
     product: {
       title: 'Produkt',
       links: [
-        { label: 'Funkcje', href: '#features' },
-        { label: 'Cennik', href: '#pricing-widget' },
-        { label: 'Integracje', href: '#' },
-        { label: 'Aktualizacje', href: '#' },
+        { label: 'Funkcje', href: '#features', type: 'scroll' },
+        { label: 'Cennik', href: '#pricing-widget', type: 'scroll' },
+        { label: 'Integracje', href: '#', type: 'internal' },
+        { label: 'Roadmap', href: 'https://roadmap.timelove.pl', type: 'external' },
       ]
     },
     company: {
       title: 'Firma',
       links: [
-        { label: 'O nas', href: '#' },
-        { label: 'Kariera', href: '#' },
-        { label: 'Blog', href: '#blog-widget' },
-        { label: 'Kontakt', href: '#' },
+        { label: 'O nas', href: '#', type: 'internal' },
+        { label: 'Kariera', href: '#', type: 'internal' },
+        { label: 'Blog', href: '#blog-widget', type: 'scroll' },
+        { label: 'Kontakt', href: '#', type: 'internal' },
       ]
     },
     support: {
       title: 'Wsparcie',
       links: [
-        { label: 'Centrum pomocy', href: '#' },
-        { label: 'FAQ', href: '#faq-widget' },
-        { label: 'Status systemu', href: '#' },
-        { label: 'Dokumentacja', href: '#' },
+        { label: 'Centrum pomocy', href: '#', type: 'internal' },
+        { label: 'FAQ', href: '#faq-widget', type: 'scroll' },
+        { label: 'Status systemu', href: '#', type: 'internal' },
+        { label: 'Dokumentacja', href: 'https://docs.timelove.pl', type: 'external' },
       ]
     },
     legal: {
       title: 'Prawne',
       links: [
-        { label: 'Polityka prywatności', href: '#' },
-        { label: 'Regulamin', href: '#' },
-        { label: 'Cookies', href: '#' },
-        { label: 'RODO', href: '#' },
+        { label: 'Polityka prywatności', href: '#', type: 'internal' },
+        { label: 'Regulamin', href: '#', type: 'internal' },
+        { label: 'Cookies', href: '#', type: 'internal' },
+        { label: 'RODO', href: '#', type: 'internal' },
       ]
     }
   };
@@ -50,19 +51,77 @@ const Footer = () => {
     { icon: Instagram, href: '#', label: 'Instagram' },
   ];
 
+  const scrollToSection = (href) => {
+    const element = document.querySelector(href);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const renderLink = (link) => {
+    if (link.type === 'external') {
+      return (
+        <a 
+          href={link.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm text-white/60 hover:text-white transition-colors inline-flex items-center gap-1"
+        >
+          {link.label}
+          <ExternalLink className="w-3 h-3" />
+        </a>
+      );
+    }
+    if (link.type === 'scroll') {
+      return (
+        <button
+          onClick={() => scrollToSection(link.href)}
+          className="text-sm text-white/60 hover:text-white transition-colors text-left"
+        >
+          {link.label}
+        </button>
+      );
+    }
+    return (
+      <a 
+        href={link.href}
+        className="text-sm text-white/60 hover:text-white transition-colors"
+      >
+        {link.label}
+      </a>
+    );
+  };
+
   return (
     <footer className="bg-[#1A1A1A] border-t border-white/5">
+      {/* Widget Embed Section - Live Agent & Tacu.cool placeholders */}
+      <div id="footer-widgets" className="hidden">
+        {/* 
+          Live Agent Chat Widget Placeholder
+          Paste your Live Agent widget code here:
+          Example: <script src="https://your-liveagent.com/widget.js"></script>
+        */}
+        <div id="live-agent-container"></div>
+        
+        {/*
+          Tacu.cool Engagement Widget Placeholder
+          Paste your Tacu.cool widget code here:
+          Example: <script src="https://tacu.cool/embed.js" data-site-id="YOUR_ID"></script>
+        */}
+        <div id="tacu-cool-container"></div>
+      </div>
+
       {/* Main Footer */}
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 lg:gap-12">
           {/* Brand Column */}
           <div className="col-span-2">
-            <a href="/" className="flex items-center gap-2 mb-6">
+            <Link to="/" className="flex items-center gap-2 mb-6">
               <div className="w-10 h-10 rounded-xl bg-[#0066FF] flex items-center justify-center">
                 <Clock className="w-6 h-6 text-white" />
               </div>
               <span className="text-xl font-bold text-white">TimeLov</span>
-            </a>
+            </Link>
             
             <p className="text-white/60 text-sm mb-6 max-w-xs">
               Kompleksowe narzędzie do zarządzania zespołem. 
@@ -84,6 +143,28 @@ const Footer = () => {
                 <span>Warszawa, Polska</span>
               </div>
             </div>
+
+            {/* Quick Links */}
+            <div className="mt-6 flex flex-wrap gap-3">
+              <a 
+                href="https://roadmap.timelove.pl" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-white/5 text-white/60 hover:text-white hover:bg-white/10 text-xs transition-colors"
+              >
+                Roadmap (Frill)
+                <ExternalLink className="w-3 h-3" />
+              </a>
+              <a 
+                href="https://docs.timelove.pl" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-white/5 text-white/60 hover:text-white hover:bg-white/10 text-xs transition-colors"
+              >
+                Dokumentacja (Malcolm)
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
           </div>
 
           {/* Link Columns */}
@@ -95,12 +176,7 @@ const Footer = () => {
               <ul className="space-y-3">
                 {section.links.map((link) => (
                   <li key={link.label}>
-                    <a 
-                      href={link.href}
-                      className="text-sm text-white/60 hover:text-white transition-colors"
-                    >
-                      {link.label}
-                    </a>
+                    {renderLink(link)}
                   </li>
                 ))}
               </ul>
