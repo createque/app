@@ -137,17 +137,14 @@ class WidgetCreate(BaseModel):
         if len(v) > 50 * 1024:
             raise ValueError('Widget code exceeds 50KB limit')
         
-        # Basic XSS prevention - check for dangerous patterns
-        dangerous_patterns = [
-            r'javascript:',
-            r'on\w+\s*=',  # onclick=, onload=, etc.
-            r'<script[^>]*>[^<]*(?!elfsight)',  # scripts not from elfsight
-        ]
+        # Sanitize the code
+        v = sanitize_widget_code(v)
         
-        v_lower = v.lower()
-        for pattern in dangerous_patterns:
-            if re.search(pattern, v_lower) and 'elfsight' not in v_lower:
-                raise ValueError('Widget code contains potentially dangerous content')
+        # Validate iframe sources (only HTTPS from trusted domains)
+        validate_iframe_sources(v)
+        
+        # Validate script sources (only HTTPS from trusted domains)
+        validate_script_sources(v)
         
         return v
 
