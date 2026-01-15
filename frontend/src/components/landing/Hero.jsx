@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { Play, ArrowRight, QrCode, Award, Zap, Image } from 'lucide-react';
 
@@ -46,21 +47,27 @@ const Hero = () => {
             
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
-              <Button 
-                size="lg"
-                className="bg-[#0066FF] hover:bg-[#0052CC] text-white px-8 py-6 text-base font-semibold shadow-xl shadow-[#0066FF]/25 transition-all hover:shadow-2xl hover:shadow-[#0066FF]/30 hover:-translate-y-0.5"
-              >
-                Spróbuj za darmo
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-              <Button 
-                variant="outline"
-                size="lg"
-                className="border-2 border-[#1A1A1A]/20 text-[#1A1A1A] hover:bg-[#1A1A1A]/5 hover:border-[#1A1A1A]/30 px-8 py-6 text-base font-semibold transition-all"
-              >
-                <Play className="w-5 h-5 mr-2" />
-                Obejrzyj demo
-              </Button>
+              <Link to="/signup">
+                <Button 
+                  size="lg"
+                  data-testid="hero-signup-button"
+                  className="bg-[#0066FF] hover:bg-[#0052CC] text-white px-8 py-6 text-base font-semibold shadow-xl shadow-[#0066FF]/25 transition-all hover:shadow-2xl hover:shadow-[#0066FF]/30 hover:-translate-y-0.5 w-full sm:w-auto"
+                >
+                  Spróbuj za darmo
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+              </Link>
+              <Link to="/demo">
+                <Button 
+                  variant="outline"
+                  size="lg"
+                  data-testid="hero-demo-button"
+                  className="border-2 border-[#1A1A1A]/20 text-[#1A1A1A] hover:bg-[#1A1A1A]/5 hover:border-[#1A1A1A]/30 px-8 py-6 text-base font-semibold transition-all w-full sm:w-auto"
+                >
+                  <Play className="w-5 h-5 mr-2" />
+                  Obejrzyj demo
+                </Button>
+              </Link>
             </div>
             
             {/* Trust indicators */}
