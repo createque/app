@@ -213,6 +213,7 @@ const LoginPage = () => {
                 <Button
                   type="submit"
                   disabled={loading}
+                  data-testid="login-submit-button"
                   className="w-full bg-[#0066FF] hover:bg-[#0052CC] text-white py-6 font-semibold transition-all disabled:opacity-50"
                 >
                   {loading ? (
