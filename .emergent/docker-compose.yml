@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  database:
+    image: postgres:15-alpine
+    container_name: timelov_db
+    environment:
+      POSTGRES_DB: timelov_landing
+      POSTGRES_USER: timelov_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme123}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - timelov_network
+    restart: unless-stopped
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: timelov_backend
+    environment:
+      DATABASE_URL: postgresql://timelov_user:${DB_PASSWORD:-changeme123}@database:5432/timelov_landing
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@timelov.com}
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+    depends_on:
+      - database
+    networks:
+      - timelov_network
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+
+  # React Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+    container_name: timelov_frontend
+    depends_on:
+      - backend
+    networks:
+      - timelov_network
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+
+volumes:
+  postgres_data:
+
+networks:
+  timelov_network:
+    driver: bridge
